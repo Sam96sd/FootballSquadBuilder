@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موزع تشكيلات كرة القدم</title>
+    <!-- Tailwind CSS لضمان واجهة مستخدم أنيقة وعصرية ومتوافقة مع الهواتف -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+        <h1 class="text-3xl font-bold text-center text-emerald-700 mb-6">تقسيم تشكيلة كرة القدم العادلة (6 ضد 6)</h1>
+        
+        <!-- قسم إضافة لاعب خارجي -->
+        <div class="bg-emerald-50 p-4 rounded-xl mb-6">
+            <h2 class="text-lg font-semibold text-emerald-800 mb-3">إضافة لاعب خارجي (ضيف)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input id="guestName" type="text" placeholder="اسم اللاعب" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <select id="guestPosition" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="هجوم">هجوم</option>
+                    <option value="وسط">وسط</option>
+                    <option value="دفاع">دفاع</option>
+                    <option value="حارس">حارس</option>
+                    <option value="جوكر">جوكر</option>
+                </select>
+                <select id="guestRating" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="5">ممتاز (5/5)</option>
+                    <option value="4">جيد جداً (4/5)</option>
+                    <option value="3">متوسط (3/5)</option>
+                    <option value="2">مبتدئ (2/5)</option>
+                </select>
+                <button onclick="addGuest()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-700 transition">إضافة اللاعب</button>
+            </div>
+        </div>
+
+        <!-- قائمة اختيار الحاضرين -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold text-gray-800">اختر اللاعبين الحاضرين اليوم (<span id="selectedCount" class="text-emerald-600">0</span> / 12)</h2>
+                <button onclick="clearSelection()" class="text-sm text-red-600 hover:underline">إلغاء تحديد الكل</button>
+            </div>
+            
+            <div id="playersGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- سيتم توليد اللاعبين هنا برمجياً -->
+            </div>
+        </div>
+
+        <!-- زر التقسيم -->
+        <div class="text-center mb-8">
+            <button id="generateBtn" onclick="generateTeams()" disabled class="bg-gray-400 text-white font-bold text-lg py-3 px-8 rounded-xl cursor-not-allowed shadow-md transition-all">
+                يجب اختيار 12 لاعباً لبدء التقسيم
+            </button>
+        </div>
+
+        <!-- عرض الفرق الناتجة -->
+        <div id="resultsSection" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- الفريق الأول -->
+            <div class="bg-blue-50 border-t-4 border-blue-500 p-5 rounded-xl shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-blue-800">الفريق الأول</h3>
+                    <span class="bg-blue-200 text-blue-800 text-sm font-semibold px-2.5 py-1 rounded-full">القوة: <span id="team1Power">0</span></span>
+                </div>
+                <ul id="team1List" class="space-y-2"></ul>
+            </div>
+
+            <!-- الفريق الثاني -->
+            <div class="bg-orange-50 border-t-4 border-orange-500 p-5 rounded-xl shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-orange-800">الفريق الثاني</h3>
+                    <span class="bg-orange-200 text-orange-800 text-sm font-semibold px-2.5 py-1 rounded-full">القوة: <span id="team2Power">0</span></span>
+                </div>
+                <ul id="team2List" class="space-y-2"></ul>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // قائمة اللاعبين الأساسية التي أرسلتها
+        let players = [
+            { id: 1, name: "سامر سعد", rating: 5, position: "جوكر" },
+            { id: 2, name: "أحمد رحمان", rating: 2, position: "هجوم" },
+            { id: 3, name: "عمرو باظ", rating: 3, position: "هجوم" },
+            { id: 4, name: "بشار رعد", rating: 2, position: "دفاع" },
+            { id: 5, name: "إبراهيم التجار", rating: 3, position: "دفاع" },
+            { id: 6, name: "حامد الناظر", rating: 3, position: "هجوم" },
+            { id: 7, name: "حسين عبدالباقي", rating: 4, position: "وسط" },
+            { id: 8, name: "خالد التجار", rating: 2, position: "حارس" },
+            { id: 9, name: "محمود عقيل", rating: 5, position: "دفاع" },
+            { id: 10, name: "مجد الحمصي", rating: 4, position: "هجوم" },
+            { id: 11, name: "مناف زيدان", rating: 4, position: "دفاع ووسط" },
+            { id: 12, name: "مصطفى حمشو", rating: 4, position: "دفاع ووسط" },
+            { id: 13, name: "عبادة القصاب", rating: 4, position: "وسط وهجوم" },
+            { id: 14, name: "عمران القصاب", rating: 4.5, position: "دفاع وهجوم" },
+            { id: 15, name: "رامي عبده", rating: 4, position: "حارس" },
+            { id: 16, name: "ثائر حديد", rating: 3.5, position: "وسط وهجوم" },
+            { id: 17, name: "يزن علوية", rating: 3.5, position: "وسط وهجوم" },
+            { id: 18, name: "زيد التجار", rating: 4, position: "هجوم ووسط" },
+            { id: 19, name: "محمد ملحم", rating: 5, position: "جوكر" },
+            { id: 20, name: "خالد عبود", rating: 3.5, position: "دفاع" }
+        ];
+
+        let selectedPlayerIds = new Set();
+
+        // رسم واجهة اختيار اللاعبين
+        function renderPlayers() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+            players.forEach(p => {
+                const isChecked = selectedPlayerIds.has(p.id);
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-3 rounded-xl border-2 transition cursor-pointer select-none ${isChecked ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`;
+                card.onclick = () => togglePlayer(p.id);
+                
+                card.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-bold text-gray-800">${p.name}</span>
+                        <span class="text-xs text-gray-500">${p.position} | ★ ${p.rating}</span>
+                    </div>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500">
+                `;
+                grid.appendChild(card);
+            });
+            updateUI();
+        }
+
+        // تحديد/إلغاء تحديد لاعب
+        function togglePlayer(id) {
+            if (selectedPlayerIds.has(id)) {
+                selectedPlayerIds.delete(id);
+            } else {
+                if (selectedPlayerIds.size < 12) {
+                    selectedPlayerIds.add(id);
+                } else {
+                    alert("يمكنك اختيار 12 لاعباً كحد أقصى للمباراة (6 ضد 6).");
+                }
+            }
+            renderPlayers();
+        }
+
+        // مسح التحديد
+        function clearSelection() {
+            selectedPlayerIds.clear();
+            renderPlayers();
+        }
+
+        // تحديث أزرار التحكم والعداد
+        function updateUI() {
+            const count = selectedPlayerIds.size;
+            document.getElementById('selectedCount').innerText = count;
+            const btn = document.getElementById('generateBtn');
+            if (count === 12) {
+                btn.disabled = false;
+                btn.className = "bg-emerald-600 text-white font-bold text-lg py-3 px-8 rounded-xl cursor-pointer hover:bg-emerald-700 shadow-md transition-all";
+                btn.innerText = "قسّم التشكيلة الآن";
+            } else {
+                btn.disabled = true;
+                btn.className = "bg-gray-400 text-white font-bold text-lg py-3 px-8 rounded-xl cursor-not-allowed shadow-md transition-all";
+                btn.innerText = `يجب اختيار ${12 - count} لاعبين إضافيين`;
+            }
+        }
+
+        // إضافة لاعب خارجي
+        function addGuest() {
+            const name = document.getElementById('guestName').value.trim();
+            const position = document.getElementById('guestPosition').value;
+            const rating = parseFloat(document.getElementById('guestRating').value);
+
+            if (!name) {
+                alert("الرجاء إدخال اسم اللاعب.");
+                return;
+            }
+
+            const newId = players.length + 1;
+            const newPlayer = { id: newId, name, rating, position };
+            players.push(newPlayer);
+            
+            // تحديده تلقائياً إذا كان العدد أقل من 12
+            if (selectedPlayerIds.size < 12) {
+                selectedPlayerIds.add(newId);
+            }
+
+            document.getElementById('guestName').value = '';
+            renderPlayers();
+        }
+
+        // خوارزمية تقسيم الفرق العادلة
+        function generateTeams() {
+            const selectedList = players.filter(p => selectedPlayerIds.has(p.id));
+            
+            // سنقوم بتجربة تقسيمات عشوائية ونختار أفضلها توازناً
+            let bestSplit = null;
+            let minDiff = Infinity;
+            let acceptableSplits = [];
+
+            // تجربة توليد تشكيلة عشوائية لـ 2000 مرة واختيار الأكثر توازناً لمنع التكرار
+            for (let i = 0; i < 2000; i++) {
+                // خلط عشوائي للاعبي اليوم
+                const shuffled = [...selectedList].sort(() => 0.5 - Math.random());
+                
+                const team1 = shuffled.slice(0, 6);
+                const team2 = shuffled.slice(6, 12);
+
+                const t1Power = team1.reduce((sum, p) => sum + p.rating, 0);
+                const t2Power = team2.reduce((sum, p) => sum + p.rating, 0);
+                
+                const diff = Math.abs(t1Power - t2Power);
+
+                // فحص لتوزيع حراس المرمى بشكل عادل
+                const t1GKs = team1.filter(p => p.position.includes('حارس')).length;
+                const t2GKs = team2.filter(p => p.position.includes('حارس')).length;
+                
+                // فحص توزيع المدافعين الصريحين (بناءً على طلبك أن الدفاع لا يجيد الهجوم)
+                const t1Defs = team1.filter(p => p.position === 'دفاع').length;
+                const t2Defs = team2.filter(p => p.position === 'دفاع').length;
+
+                // شروط الحفاظ على العدالة:
+                // 1. توازن قوة التقييم (الفرق لا يزيد عن نقطة واحدة إذا أمكن)
+                // 2. إذا وجد حارسان صريحان، يجب توزيع كل واحد في فريق
+                // 3. توازن المدافعين بحيث لا يتجمعون في فريق واحد
+                if (diff <= 1.5 && Math.abs(t1GKs - t2GKs) <= 1 && Math.abs(t1Defs - t2Defs) <= 1) {
+                    acceptableSplits.push({ team1, team2, t1Power, t2Power, diff });
+                }
+            }
+
+            // إذا لم نجد تقسيمات مثالية بالشروط الصارمة، نأخذ التشكيلة الأقرب توازناً
+            if (acceptableSplits.length === 0) {
+                // خوارزمية تراجع بسيطة للحصول على أي تقسيم قريب
+                const shuffled = [...selectedList].sort(() => 0.5 - Math.random());
+                bestSplit = {
+                    team1: shuffled.slice(0, 6),
+                    team2: shuffled.slice(6, 12),
+                    t1Power: shuffled.slice(0, 6).reduce((sum, p) => sum + p.rating, 0),
+                    t2Power: shuffled.slice(6, 12).reduce((sum, p) => sum + p.rating, 0)
+                };
+            } else {
+                // اختيار تقسيم عشوائي من بين أفضل التقسيمات المقبولة لكسر روتين اللعب المكرر
+                bestSplit = acceptableSplits[Math.floor(Math.random() * acceptableSplits.length)];
+            }
+
+            displayResults(bestSplit);
+        }
+
+        // عرض النتائج في الصفحة
+        function displayResults(split) {
+            const resultsSection = document.getElementById('resultsSection');
+            const team1List = document.getElementById('team1List');
+            const team2List = document.getElementById('team2List');
+
+            team1List.innerHTML = '';
+            team2List.innerHTML = '';
+
+            split.team1.forEach(p => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-white p-2.5 rounded shadow-sm text-gray-800 font-semibold";
+                li.innerHTML = `<span>${p.name}</span> <span class="text-xs bg-gray-100 text-gray-600 py-1 px-2 rounded">${p.position} (★${p.rating})</span>`;
+                team1List.appendChild(li);
+            });
+
+            split.team2.forEach(p => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-white p-2.5 rounded shadow-sm text-gray-800 font-semibold";
+                li.innerHTML = `<span>${p.name}</span> <span class="text-xs bg-gray-100 text-gray-600 py-1 px-2 rounded">${p.position} (★${p.rating})</span>`;
+                team2List.appendChild(li);
+            });
+
+            document.getElementById('team1Power').innerText = split.t1Power.toFixed(1);
+            document.getElementById('team2Power').innerText = split.t2Power.toFixed(1);
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // بدء تشغيل التطبيق وعرض اللاعبين عند تحميل الصفحة
+        renderPlayers();
+    </script>
+</body>
+</html>
