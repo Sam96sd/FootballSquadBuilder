@@ -62,7 +62,7 @@
         <div class="bg-slate-800/20 border border-amber-500/10 p-4 rounded-xl mb-6">
             <h2 class="text-lg font-bold text-amber-400 mb-3 text-right">🧉 صبيبة المتة اليوم</h2>
             <div class="flex gap-2">
-                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-850 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="addMateServer()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-all">إضافة</button>
             </div>
             <div id="mateListContainer" class="flex flex-wrap gap-2 mt-3"></div>
@@ -157,7 +157,7 @@
             players.forEach(p => {
                 const isChecked = selectedPlayerIds.has(p.id);
                 const card = document.createElement('div');
-                card.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'border-emerald-500 bg-emerald-950/30 text-emerald-300' : 'border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800'}`;
+                card.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'border-emerald-500 bg-emerald-955/30 text-emerald-300' : 'border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800'}`;
                 card.onclick = () => togglePlayer(p.id);
                 
                 const guestBadge = p.isGuest ? `<span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 rounded-full">ضيف</span>` : '';
@@ -201,7 +201,7 @@
             
             if (mode === 12) {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all";
-                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-750 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
+                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
             } else {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
                 btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-emerald-600 text-white transition-all";
@@ -225,7 +225,7 @@
             } else {
                 btn.disabled = true;
                 btn.className = "bg-slate-800 text-slate-600 font-bold text-lg py-3 px-10 rounded-xl cursor-not-allowed border border-slate-750 transition-all w-full md:w-auto";
-                btn.innerText = `يرجى تحديد ${matchMode - count} لاعبين للبدء`;
+                btn.innerText = `يرجى تحديد ${matchMode - count} لاعبين إضافيين للبدء`;
             }
         }
 
@@ -292,4 +292,118 @@
 
             for (let step = 0; step < 3000; step++) {
                 const shuffled = [...selectedList];
-                shuf
+                shuffled.sort(() => 0.5 - Math.random());
+                
+                const team1 = shuffled.slice(0, halfSize);
+                const team2 = shuffled.slice(halfSize, matchMode);
+
+                const t1Power = team1.reduce((sum, p) => sum + p.rating, 0);
+                const t2Power = team2.reduce((sum, p) => sum + p.rating, 0);
+                
+                const diff = Math.abs(t1Power - t2Power);
+
+                const t1GKs = team1.filter(p => p.position.includes('حارس')).length;
+                const t2GKs = team2.filter(p => p.position.includes('حارس')).length;
+                
+                const t1Defs = team1.filter(p => p.position === 'دفاع').length;
+                const t2Defs = team2.filter(p => p.position === 'دفاع').length;
+
+                if (diff <= 1.0 && Math.abs(t1GKs - t2GKs) <= 1 && Math.abs(t1Defs - t2Defs) <= 1) {
+                    acceptableSplits.push({ team1, team2 });
+                }
+            }
+
+            let finalSplit;
+            if (acceptableSplits.length > 0) {
+                finalSplit = acceptableSplits[Math.floor(Math.random() * acceptableSplits.length)];
+            } else {
+                const backupShuffle = [...selectedList];
+                backupShuffle.sort(() => 0.5 - Math.random());
+                finalSplit = { team1: backupShuffle.slice(0, halfSize), team2: backupShuffle.slice(halfSize, matchMode) };
+            }
+
+            displayResults(finalSplit);
+        }
+
+        function displayResults(split) {
+            const resultsSection = document.getElementById('resultsSection');
+            const team1List = document.getElementById('team1List');
+            const team2List = document.getElementById('team2List');
+
+            if (!resultsSection || !team1List || !team2List) return;
+
+            team1List.innerHTML = '';
+            team2List.innerHTML = '';
+
+            const t1GKs = split.team1.filter(p => p.position.includes('حارس'));
+            const t2GKs = split.team2.filter(p => p.position.includes('حارس'));
+
+            let t1TempGKId = null;
+            let t2TempGKId = null;
+
+            if (t1GKs.length === 0 && t2GKs.length > 0) {
+                const sortedT1 = [...split.team1].sort((a, b) => a.rating - b.rating);
+                t1TempGKId = sortedT1[0].id;
+            } 
+            else if (t2GKs.length === 0 && t1GKs.length > 0) {
+                const sortedT2 = [...split.team2].sort((a, b) => a.rating - b.rating);
+                t2TempGKId = sortedT2[0].id; 
+            } 
+            else if (t1GKs.length === 0 && t2GKs.length === 0) {
+                const sortedT1 = [...split.team1].sort((a, b) => a.rating - b.rating);
+                t1TempGKId = sortedT1[0].id;
+                const sortedT2 = [...split.team2].sort((a, b) => a.rating - b.rating);
+                t2TempGKId = sortedT2[0].id;
+            }
+
+            function getPlayerRowHtml(p, idx, isTeam1) {
+                const isSubText = (matchMode === 14 && idx === 6) ? '<span class="text-[10px] bg-amber-955 text-amber-400 px-1.5 py-0.5 rounded border border-amber-800">احتياط</span>' : '';
+                
+                const isGK = p.position.includes('حارس');
+                const isTempGK = (isTeam1 && p.id === t1TempGKId) || (!isTeam1 && p.id === t2TempGKId);
+                
+                let badgeColor = "text-slate-400 bg-slate-850 border-slate-700";
+                let badgeText = p.position;
+                
+                if (isGK) {
+                    badgeColor = "text-emerald-400 bg-emerald-950/50 border-emerald-800/40 font-bold";
+                    badgeText = "حارس مرمى";
+                } else if (isTempGK) {
+                    badgeColor = "text-amber-400 bg-amber-950/60 border-amber-800/40 font-bold animate-pulse";
+                    badgeText = "حارس مؤقت 🧤";
+                }
+
+                return `
+                    <li class="flex justify-between items-center bg-slate-900 border border-slate-800 p-3 rounded-lg text-slate-100 font-medium text-right">
+                        <span>${p.name} ${isSubText}</span>
+                        <span class="text-xs ${badgeColor} py-1 px-2.5 rounded-full border">${badgeText}</span>
+                    </li>
+                `;
+            }
+
+            split.team1.forEach((p, idx) => {
+                team1List.innerHTML += getPlayerRowHtml(p, idx, true);
+            });
+
+            split.team2.forEach((p, idx) => {
+                team2List.innerHTML += getPlayerRowHtml(p, idx, false);
+            });
+
+            const mateHonorCard = document.getElementById('mateHonorCard');
+            const mateHonorNames = document.getElementById('mateHonorNames');
+            if (mateServers.length > 0) {
+                mateHonorNames.innerText = mateServers.join(' - ');
+                mateHonorCard.classList.remove('hidden');
+            } else {
+                mateHonorCard.classList.add('hidden');
+            }
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // تشغيل مباشر فوري بدون انتظار تحميل أي عنصر خارجي (تماماً مثل النسخة الأولى الناجحة)
+        renderPlayers();
+    </script>
+</body>
+</html>
