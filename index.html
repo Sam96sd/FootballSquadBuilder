@@ -23,7 +23,7 @@
                 <button id="btnMode12" onclick="setMatchMode(12)" class="px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all">
                     12 لاعب (6 ضد 6)
                 </button>
-                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border-y border-l border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all">
+                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all">
                     14 لاعب (6 أساسي + 1 احتياط)
                 </button>
             </div>
@@ -62,7 +62,7 @@
         <div class="bg-slate-800/20 border border-amber-500/10 p-4 rounded-xl mb-6">
             <h2 class="text-lg font-bold text-amber-400 mb-3 text-right">🧉 صبيبة المتة اليوم</h2>
             <div class="flex gap-2">
-                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-850 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="addMateServer()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-all">إضافة</button>
             </div>
             <div id="mateListContainer" class="flex flex-wrap gap-2 mt-3"></div>
@@ -121,8 +121,8 @@
     </div>
 
     <script>
-        // مصفوفة اللاعبين الأساسيين
-        var players = [
+        // قائمة اللاعبين
+        const players = [
             { id: 1, name: "سامر سعد", position: "جوكر", rating: 5 },
             { id: 2, name: "أحمد رحمان", position: "هجوم", rating: 2 },
             { id: 3, name: "عمرو باظ", position: "هجوم", rating: 3 },
@@ -145,78 +145,50 @@
             { id: 20, name: "خالد عبود", position: "دفاع", rating: 3.5 }
         ];
 
-        var selectedPlayerIds = [];
-        var mateServers = [];
-        var matchMode = 12;
+        let selectedPlayerIds = new Set();
+        let mateServers = [];
+        let matchMode = 12;
 
-        function isSelected(id) {
-            return selectedPlayerIds.indexOf(id) !== -1;
-        }
-
-        // رسم قائمة اللاعبين بدمج نصوص ES5 تقليدي آمن بالكامل
         function renderPlayers() {
-            var grid = document.getElementById('playersGrid');
+            const grid = document.getElementById('playersGrid');
             if (!grid) return;
             grid.innerHTML = '';
             
-            for (var i = 0; i < players.length; i++) {
-                (function() {
-                    var p = players[i];
-                    var checked = isSelected(p.id);
-                    var card = document.createElement('div');
-                    
-                    var cardClass = "flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ";
-                    if (checked) {
-                        cardClass += "border-emerald-500 bg-emerald-950/30 text-emerald-300";
-                    } else {
-                        cardClass += "border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800";
-                    }
-                    card.className = cardClass;
-                    
-                    card.onclick = function() {
-                        togglePlayer(p.id);
-                    };
-                    
-                    var guestBadge = "";
-                    if (p.isGuest) {
-                        guestBadge = ' <span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 rounded-full">ضيف</span>';
-                    }
-                    
-                    var checkedAttr = "";
-                    if (checked) {
-                        checkedAttr = "checked";
-                    }
-
-                    var inner = '';
-                    inner += '<div class="flex flex-col text-right">';
-                    inner += '<span class="font-bold flex items-center gap-1">' + p.name + guestBadge + '</span>';
-                    inner += '<span class="text-xs text-slate-500">' + p.position + '</span>';
-                    inner += '</div>';
-                    inner += '<input type="checkbox" ' + checkedAttr + ' class="w-5 h-5 text-emerald-500 rounded bg-slate-800 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900">';
-                    
-                    card.innerHTML = inner;
-                    grid.appendChild(card);
-                })();
-            }
+            players.forEach(p => {
+                const isChecked = selectedPlayerIds.has(p.id);
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'border-emerald-500 bg-emerald-950/30 text-emerald-300' : 'border-slate-800 bg-slate-850 text-slate-300 hover:bg-slate-800'}`;
+                card.onclick = () => togglePlayer(p.id);
+                
+                const guestBadge = p.isGuest ? `<span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 rounded-full">ضيف</span>` : '';
+                
+                card.innerHTML = `
+                    <div class="flex flex-col text-right">
+                        <span class="font-bold flex items-center gap-1">${p.name} ${guestBadge}</span>
+                        <span class="text-xs text-slate-500">${p.position}</span>
+                    </div>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-5 h-5 text-emerald-500 rounded bg-slate-800 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900">
+                `;
+                grid.appendChild(card);
+            });
             updateUI();
         }
 
         function togglePlayer(id) {
-            var index = selectedPlayerIds.indexOf(id);
-            if (index !== -1) {
-                selectedPlayerIds.splice(index, 1);
+            if (selectedPlayerIds.has(id)) {
+                selectedPlayerIds.delete(id);
             } else {
-                if (selectedPlayerIds.length < matchMode) {
-                    selectedPlayerIds.push(id);
+                if (selectedPlayerIds.size < matchMode) {
+                    selectedPlayerIds.add(id);
                 } else {
-                    alert("لقد اخترت الحد الأقصى لنمط اليوم وهو " + matchMode + " لاعباً.");
+                    alert(`لقد اخترت الحد الأقصى لنمط اليوم وهو ${matchMode} لاعباً.`);
                 }
             }
             renderPlayers();
         }
 
         function clearSelection() {
-            selectedPlayerIds = [];
+            selectedPlayerIds.clear();
             renderPlayers();
         }
 
@@ -224,28 +196,27 @@
             matchMode = mode;
             document.getElementById('requiredCount').innerText = mode;
             
-            var btn12 = document.getElementById('btnMode12');
-            var btn14 = document.getElementById('btnMode14');
+            const btn12 = document.getElementById('btnMode12');
+            const btn14 = document.getElementById('btnMode14');
             
             if (mode === 12) {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all";
-                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border-y border-l border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
+                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-750 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
             } else {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
-                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border-y border-l border-slate-700 bg-emerald-600 text-white transition-all";
+                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-emerald-600 text-white transition-all";
             }
             
-            if (selectedPlayerIds.length > matchMode) {
-                selectedPlayerIds = [];
+            if (selectedPlayerIds.size > matchMode) {
+                selectedPlayerIds.clear();
             }
-            
             renderPlayers();
         }
 
         function updateUI() {
-            var count = selectedPlayerIds.length;
+            const count = selectedPlayerIds.size;
             document.getElementById('selectedCount').innerText = count;
-            var btn = document.getElementById('generateBtn');
+            const btn = document.getElementById('generateBtn');
             
             if (count === matchMode) {
                 btn.disabled = false;
@@ -254,22 +225,22 @@
             } else {
                 btn.disabled = true;
                 btn.className = "bg-slate-800 text-slate-600 font-bold text-lg py-3 px-10 rounded-xl cursor-not-allowed border border-slate-750 transition-all w-full md:w-auto";
-                btn.innerText = "يرجى تحديد " + (matchMode - count) + " لاعبين إضافيين للبدء";
+                btn.innerText = `يرجى تحديد ${matchMode - count} لاعبين للبدء`;
             }
         }
 
         function addGuest() {
-            var nameInput = document.getElementById('guestName');
-            var name = nameInput.value.trim();
-            var position = document.getElementById('guestPosition').value;
-            var rating = parseFloat(document.getElementById('guestRating').value);
+            const nameInput = document.getElementById('guestName');
+            const name = nameInput.value.trim();
+            const position = document.getElementById('guestPosition').value;
+            const rating = parseFloat(document.getElementById('guestRating').value);
 
             if (!name) {
                 alert("يرجى كتابة اسم اللاعب الضيف أولاً.");
                 return;
             }
 
-            var newId = players.length + 1;
+            const newId = players.length + 1;
             players.push({
                 id: newId,
                 name: name,
@@ -278,8 +249,8 @@
                 isGuest: true
             });
 
-            if (selectedPlayerIds.length < matchMode) {
-                selectedPlayerIds.push(newId);
+            if (selectedPlayerIds.size < matchMode) {
+                selectedPlayerIds.add(newId);
             }
 
             nameInput.value = '';
@@ -287,8 +258,8 @@
         }
 
         function addMateServer() {
-            var nameInput = document.getElementById('mateName');
-            var name = nameInput.value.trim();
+            const nameInput = document.getElementById('mateName');
+            const name = nameInput.value.trim();
             if (!name) return;
             
             mateServers.push(name);
@@ -302,48 +273,23 @@
         }
 
         function renderMateServers() {
-            var container = document.getElementById('mateListContainer');
+            const container = document.getElementById('mateListContainer');
             if (!container) return;
             container.innerHTML = '';
             
-            mateServers.forEach(function(name, idx) {
-                var badge = document.createElement('span');
+            mateServers.forEach((name, idx) => {
+                const badge = document.createElement('span');
                 badge.className = "inline-flex items-center gap-1.5 bg-amber-950/40 text-amber-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-amber-800/40";
-                badge.innerHTML = '🧉 ' + name + ' <button onclick="removeMateServer(' + idx + ')" class="text-red-400 hover:text-red-300 font-bold ml-1">×</button>';
+                badge.innerHTML = `🧉 ${name} <button onclick="removeMateServer(${idx})" class="text-red-400 hover:text-red-300 font-bold ml-1">×</button>`;
                 container.appendChild(badge);
             });
         }
 
         function generateTeams() {
-            var selectedList = [];
-            for (var i = 0; i < players.length; i++) {
-                if (isSelected(players[i].id)) {
-                    selectedList.push(players[i]);
-                }
-            }
+            const selectedList = players.filter(p => selectedPlayerIds.has(p.id));
+            const halfSize = matchMode / 2;
+            let acceptableSplits = [];
 
-            var halfSize = matchMode / 2;
-            var acceptableSplits = [];
-
-            for (var step = 0; step < 3000; step++) {
-                var shuffled = [].concat(selectedList);
-                shuffled.sort(function() { return 0.5 - Math.random(); });
-                
-                var team1 = shuffled.slice(0, halfSize);
-                var team2 = shuffled.slice(halfSize, matchMode);
-
-                var t1Power = 0;
-                var t2Power = 0;
-                
-                for (var j = 0; j < team1.length; j++) t1Power += team1[j].rating;
-                for (var k = 0; k < team2.length; k++) t2Power += team2[k].rating;
-                
-                var diff = Math.abs(t1Power - t2Power);
-
-                var t1GKs = 0, t2GKs = 0, t1Defs = 0, t2Defs = 0;
-                
-                for (var x = 0; x < team1.length; x++) {
-                    if (team1[x].position.indexOf('حارس') !== -1) t1GKs++;
-                    if (team1[x].position === 'دفاع') t1Defs++;
-                }
-                for (var y = 0; y < team2.length; y++) {
+            for (let step = 0; step < 3000; step++) {
+                const shuffled = [...selectedList];
+                shuf
