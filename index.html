@@ -62,7 +62,7 @@
         <div class="bg-slate-800/20 border border-amber-500/10 p-4 rounded-xl mb-6">
             <h2 class="text-lg font-bold text-amber-400 mb-3 text-right">🧉 صبيبة المتة اليوم</h2>
             <div class="flex gap-2">
-                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-850 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="addMateServer()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-all">إضافة</button>
             </div>
             <div id="mateListContainer" class="flex flex-wrap gap-2 mt-3"></div>
@@ -201,9 +201,9 @@
             
             if (mode === 12) {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all";
-                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
+                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-750 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
             } else {
-                btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
+                btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-850 text-slate-400 hover:bg-slate-750 transition-all";
                 btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-emerald-600 text-white transition-all";
             }
             
@@ -225,7 +225,7 @@
             } else {
                 btn.disabled = true;
                 btn.className = "bg-slate-800 text-slate-600 font-bold text-lg py-3 px-10 rounded-xl cursor-not-allowed border border-slate-750 transition-all w-full md:w-auto";
-                btn.innerText = `يرجى تحديد ${matchMode - count} لاعبين إضافيين للبدء`;
+                btn.innerText = `يرجى تحديد ${matchMode - count} لاعبين للبدء`;
             }
         }
 
@@ -357,8 +357,6 @@
             }
 
             function getPlayerRowHtml(p, idx, isTeam1) {
-                const isSubText = (matchMode === 14 && idx === 6) ? '<span class="text-[10px] bg-amber-955 text-amber-400 px-1.5 py-0.5 rounded border border-amber-800">احتياط</span>' : '';
-                
                 const isGK = p.position.includes('حارس');
                 const isTempGK = (isTeam1 && p.id === t1TempGKId) || (!isTeam1 && p.id === t2TempGKId);
                 
@@ -375,7 +373,7 @@
 
                 return `
                     <li class="flex justify-between items-center bg-slate-900 border border-slate-800 p-3 rounded-lg text-slate-100 font-medium text-right">
-                        <span>${p.name} ${isSubText}</span>
+                        <span>${p.name}</span>
                         <span class="text-xs ${badgeColor} py-1 px-2.5 rounded-full border">${badgeText}</span>
                     </li>
                 `;
