@@ -7,7 +7,7 @@
     <!-- Tailwind CSS للوضع الداكن المتقدم والتصميم المتجاوب -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+<body class="bg-slate-955 text-slate-100 min-h-screen p-4 md:p-8 bg-slate-950">
 
     <div class="max-w-4xl mx-auto bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-6">
         
@@ -43,4 +43,82 @@
                     <option value="جوكر">المركز: جوكر</option>
                 </select>
 
-              
+                <select id="guestRating" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="5">التقييم الفني: ممتاز (5/5)</option>
+                    <option value="4.5">التقييم الفني: جيد جداً مرتفع (4.5/5)</option>
+                    <option value="4">التقييم الفني: جيد جداً (4/5)</option>
+                    <option value="3.5">التقييم الفني: جيد (3.5/5)</option>
+                    <option value="3">التقييم الفني: متوسط (3/5)</option>
+                    <option value="2">التقييم الفني: مبتدئ (2/5)</option>
+                </select>
+
+                <button onclick="addGuest()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                    إدراج بقائمة اليوم
+                </button>
+            </div>
+        </div>
+
+        <!-- إضافة صبيبة المتة 🧉 -->
+        <div class="bg-slate-800/20 border border-amber-500/10 p-4 rounded-xl mb-6">
+            <h2 class="text-lg font-bold text-amber-400 mb-3 text-right">🧉 صبيبة المتة اليوم</h2>
+            <div class="flex gap-2">
+                <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <button onclick="addMateServer()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-all">إضافة</button>
+            </div>
+            <div id="mateListContainer" class="flex flex-wrap gap-2 mt-3"></div>
+        </div>
+
+        <!-- قائمة اختيار الحاضرين -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold text-slate-200">
+                    اختر الحاضرين للعب (<span id="selectedCount" class="text-emerald-400">0</span> / <span id="requiredCount">12</span>)
+                </h2>
+                <button onclick="clearSelection()" class="text-sm text-red-400 hover:underline">إلغاء تحديد الكل</button>
+            </div>
+            
+            <div id="playersGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- سيتم توليد اللاعبين هنا تلقائياً -->
+            </div>
+        </div>
+
+        <!-- زر التقسيم -->
+        <div class="text-center mb-8">
+            <button id="generateBtn" onclick="generateTeams()" disabled class="bg-slate-850 text-slate-600 font-bold text-lg py-3 px-8 rounded-xl cursor-not-allowed border border-slate-800 transition-all w-full md:w-auto">
+                يرجى تحديد العدد المطلوب للبدء
+            </button>
+        </div>
+
+        <!-- عرض النتائج -->
+        <div id="resultsSection" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- الفريق الأول -->
+                <div class="bg-slate-850 border border-emerald-500/20 p-5 rounded-xl shadow-lg">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+                        <h3 class="text-2xl font-bold text-emerald-400">الفريق الأول</h3>
+                        <span class="text-xs text-slate-400 font-medium bg-slate-900 py-1 px-3 rounded-full">تشكيلة متوازنة</span>
+                    </div>
+                    <ul id="team1List" class="space-y-2 text-right"></ul>
+                </div>
+
+                <!-- الفريق الثاني -->
+                <div class="bg-slate-850 border border-blue-500/20 p-5 rounded-xl shadow-lg">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+                        <h3 class="text-2xl font-bold text-blue-400">الفريق الثاني</h3>
+                        <span class="text-xs text-slate-400 font-medium bg-slate-900 py-1 px-3 rounded-full">تشكيلة متوازنة</span>
+                    </div>
+                    <ul id="team2List" class="space-y-2 text-right"></ul>
+                </div>
+            </div>
+
+            <!-- لوحة شرف صبيبة المتة الناتجة -->
+            <div id="mateHonorCard" class="hidden bg-amber-950/20 border border-amber-500/20 p-4 rounded-xl text-center">
+                <h4 class="text-amber-400 font-bold mb-2">🧉 ضيوف الشرف (صبيبة المتة)</h4>
+                <p id="mateHonorNames" class="text-slate-300 font-medium"></p>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // مصفوفة اللاعبين الأس
