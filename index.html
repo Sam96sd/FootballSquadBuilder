@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صانع التشكيلات العظيم - سامر سعد</title>
-    <!-- Tailwind CSS للوضع الداكن المتقدم والتصميم المتجاوب -->
+    <!-- Tailwind CSS للواجهات الداكنة المتقدمة -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة html2canvas لتصدير التشكيلة كصورة عالية الدقة بضغطة زر -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
 
@@ -17,7 +19,7 @@
         </h1>
 
         <!-- التحكم بنمط المباراة (12 أو 14 لاعب) -->
-        <div class="bg-slate-800 border border-slate-850 p-4 rounded-xl mb-6 text-center">
+        <div class="bg-slate-850 border border-slate-800 p-4 rounded-xl mb-6 text-center">
             <span class="block text-sm text-slate-400 mb-3 font-semibold">نمط اللعب المطلوب اليوم:</span>
             <div class="inline-flex rounded-md shadow-sm" role="group">
                 <button id="btnMode12" onclick="setMatchMode(12)" class="px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all">
@@ -62,7 +64,6 @@
         <div class="bg-slate-800/20 border border-amber-500/10 p-4 rounded-xl mb-6">
             <h2 class="text-lg font-bold text-amber-400 mb-3 text-right">🧉 صبيبة المتة اليوم</h2>
             <div class="flex gap-2">
-                <!-- تم تصحيح الكلاس هنا إلى bg-slate-800 لضمان الخلفية الداكنة والخط الأبيض الواضح -->
                 <input id="mateName" type="text" placeholder="اسم الشخص" class="bg-slate-800 text-white p-2 border border-slate-700 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="addMateServer()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-all">إضافة</button>
             </div>
@@ -85,45 +86,87 @@
 
         <!-- زر التقسيم -->
         <div class="text-center mb-8">
-            <button id="generateBtn" onclick="generateTeams()" disabled class="bg-slate-800 text-slate-500 font-bold text-lg py-3 px-10 rounded-xl cursor-not-allowed border border-slate-700 transition-all w-full md:w-auto">
+            <button id="generateBtn" onclick="generateTeams()" disabled class="bg-slate-850 text-slate-600 font-bold text-lg py-3 px-10 rounded-xl cursor-not-allowed border border-slate-700 transition-all w-full md:w-auto">
                 يرجى تحديد العدد المطلوب للبدء
             </button>
         </div>
 
         <!-- عرض النتائج -->
-        <div id="resultsSection" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- الفريق الأول -->
-                <div class="bg-slate-800 border border-emerald-500/20 p-5 rounded-xl shadow-lg">
-                    <div class="flex justify-between items-center mb-4 border-b border-slate-850 pb-2">
-                        <h3 class="text-2xl font-bold text-emerald-400">الفريق الأول</h3>
-                        <span class="text-xs text-slate-400 font-medium bg-slate-900 py-1 px-3 rounded-full">تشكيلة متوازنة</span>
-                    </div>
-                    <ul id="team1List" class="space-y-2 text-right"></ul>
-                </div>
-
-                <!-- الفريق الثاني -->
-                <div class="bg-slate-800 border border-blue-500/20 p-5 rounded-xl shadow-lg">
-                    <div class="flex justify-between items-center mb-4 border-b border-slate-850 pb-2">
-                        <h3 class="text-2xl font-bold text-blue-400">الفريق الثاني</h3>
-                        <span class="text-xs text-slate-400 font-medium bg-slate-900 py-1 px-3 rounded-full">تشكيلة متوازنة</span>
-                    </div>
-                    <ul id="team2List" class="space-y-2 text-right"></ul>
-                </div>
+        <div id="resultsOuter" class="hidden space-y-6">
+            
+            <!-- سحب وإسقاط وتصدير كصورة -->
+            <div class="text-center bg-slate-800/30 p-3 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
+                <span class="text-xs text-slate-400">💡 يمكنك سحب اللاعبين للتبديل، أو ببساطة اضغط على لاعب ثم اضغط على لاعب آخر للتبديل الفوري بينهما!</span>
+                <button onclick="exportAsImage()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-md flex items-center gap-2">
+                    📸 تصدير كصورة للجروب
+                </button>
             </div>
 
-            <!-- لوحة شرف صبيبة المتة الناتجة -->
-            <div id="mateHonorCard" class="hidden bg-amber-950/20 border border-amber-500/20 p-4 rounded-xl text-center">
-                <h4 class="text-amber-400 font-bold mb-2">🧉 ضيوف الشرف (صبيبة المتة)</h4>
-                <p id="mateHonorNames" class="text-slate-300 font-medium"></p>
+            <div id="resultsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl bg-slate-950">
+                <!-- الفريق الأبيض -->
+                <div id="whiteTeamContainer" class="bg-slate-100 text-slate-900 border-2 border-slate-200 p-5 rounded-xl shadow-lg transition-all">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-2">
+                        <h3 id="whiteTeamName" class="text-2xl font-black text-slate-950">الفريق الأبيض</h3>
+                        <span class="text-xs font-black uppercase tracking-wider bg-slate-200 text-slate-800 px-3 py-1 rounded-full border border-slate-300">الفريق الأبيض ⚪</span>
+                    </div>
+                    <ul id="whiteTeamList" class="space-y-2 text-right"></ul>
+                </div>
+
+                <!-- الفريق الأسود -->
+                <div id="blackTeamContainer" class="bg-slate-950 text-slate-100 border-2 border-slate-800 p-5 rounded-xl shadow-lg transition-all">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+                        <h3 id="blackTeamName" class="text-2xl font-black text-white">الفريق الأسود</h3>
+                        <span class="text-xs font-black uppercase tracking-wider bg-slate-900 text-slate-200 px-3 py-1 rounded-full border border-slate-800">الفريق الأسود ⚫</span>
+                    </div>
+                    <ul id="blackTeamList" class="space-y-2 text-right"></ul>
+                </div>
+
+                <!-- لوحة شرف صبيبة المتة الناتجة -->
+                <div id="mateHonorCard" class="hidden md:col-span-2 bg-amber-950/20 border border-amber-500/20 p-4 rounded-xl text-center">
+                    <h4 class="text-amber-400 font-bold mb-2">🧉 ضيوف الشرف (صبيبة المتة)</h4>
+                    <p id="mateHonorNames" class="text-slate-300 font-medium"></p>
+                </div>
             </div>
         </div>
         
     </div>
 
+    <!-- نافذة تبديل اللاعب المعتذر المنبثقة -->
+    <div id="swapModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden justify-center items-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-bold text-emerald-400 mb-2">تبديل اللاعب المعتذر</h3>
+            <p id="swapModalTargetText" class="text-sm text-slate-400 mb-4"></p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">اختر لاعباً بديلاً من المسجلين بالملف:</label>
+                    <select id="swapSelectPlayer" class="w-full bg-slate-800 text-white p-2.5 border border-slate-700 rounded-lg">
+                        <!-- سيتم تعبئته برمجياً -->
+                    </select>
+                </div>
+                
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-xs">أو ضيف بديل خارج التشكيلة</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">اسم ضيف بديل:</label>
+                    <input id="swapGuestName" type="text" placeholder="اسم الضيف البديل" class="w-full bg-slate-800 text-white p-2.5 border border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="flex gap-2 justify-end mt-6">
+                    <button onclick="closeSwapModal()" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm border border-slate-700">إلغاء</button>
+                    <button onclick="confirmSwap()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-lg text-sm">تأكيد التبديل</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // قائمة اللاعبين
-        const players = [
+        var players = [
             { id: 1, name: "سامر سعد", position: "جوكر", rating: 5 },
             { id: 2, name: "أحمد رحمان", position: "هجوم", rating: 2 },
             { id: 3, name: "عمرو باظ", position: "هجوم", rating: 3 },
@@ -146,9 +189,35 @@
             { id: 20, name: "خالد عبود", position: "دفاع", rating: 3.5 }
         ];
 
-        let selectedPlayerIds = new Set();
-        let mateServers = [];
-        let matchMode = 12;
+        // قائمة أسماء الفرق الكوميدية
+        var funnyTeamNames = [
+            "شاورما إكسترا ثوم", "فاقدي الأمل", "قطاع الطرق", "فتة مقادم", "كريستيانات",
+            "الزعران التكتيكيون", "ملوك التسلل", "أصحاب الكروش", "كباب كرز", "صقور الدكة",
+            "مهندسو الفاولات", "محترفي التمرير للخصم", "طناجر الضغط", "عصابة البقدونس",
+            "مقاتلو الشوط الأول", "أساطير الحارة", "فلافل على الواقف", "أرانب الساحة",
+            "جلطة كروية", "كبة مقلية", "شبيحة الفافوريت", "صيادو العوارض", "أصحاب النفس القصير",
+            "زعماء التبديل", "عشاق النقاط الثلاث (نظرياً)", "سمبوسك بالجبنة", "رعب ملاعب التراب",
+            "ضحايا اللياقة", "حراس المجرة (والمرمى فاضي)", "مناقيش زعتر", "البضائن", "البطاريق",
+            "المشحرين", "البطبيط", "كوسا بلبن", "مرتديلا قشقوان", "فريق محبي الجدّي",
+            "مسميس", "كيلو حلاوة جبن", "الكرابيج", "بائعي الهواء"
+        ];
+
+        var selectedPlayerIds = new Set();
+        var mateServers = [];
+        var matchMode = 12;
+
+        // متغيرات حفظ التشكيلة الحالية الناتجة للتبديل والتحريك
+        var currentTeamWhite = [];
+        var currentTeamBlack = [];
+
+        // متغيرات للتحكم بالتبديل السريع باللمس والضغط
+        var firstSelectedElement = null;
+        var firstSelectedPlayerId = null;
+        var firstSelectedTeam = null;
+
+        // متغيرات التبديل للاعب المعتذر
+        var playerToReplaceId = null;
+        var playerToReplaceTeam = null;
 
         function renderPlayers() {
             const grid = document.getElementById('playersGrid');
@@ -166,7 +235,6 @@
                 card.innerHTML = `
                     <div class="flex flex-col text-right">
                         <span class="font-bold flex items-center gap-1">${p.name} ${guestBadge}</span>
-                        <span class="text-xs text-slate-500">${p.position}</span>
                     </div>
                     <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-5 h-5 text-emerald-500 rounded bg-slate-800 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900">
                 `;
@@ -286,11 +354,13 @@
             });
         }
 
+        // خوارزمية ذكية لتقسيم وحساب كافة التشكيلات المتوازنة
         function generateTeams() {
             const selectedList = players.filter(p => selectedPlayerIds.has(p.id));
             const halfSize = matchMode / 2;
             let acceptableSplits = [];
 
+            // تجربة توليد تشكيلات رياضية متزنة وفصل النخبة (أكبر من 4.5) بالتساوي
             for (let step = 0; step < 3000; step++) {
                 const shuffled = [...selectedList];
                 shuffled.sort(() => 0.5 - Math.random());
@@ -303,13 +373,18 @@
                 
                 const diff = Math.abs(t1Power - t2Power);
 
+                // فصل لاعبي النخبة (Samer, Melhem, Mahmoud, Omran الخ)
+                const t1Elites = team1.filter(p => p.rating >= 4.5).length;
+                const t2Elites = team2.filter(p => p.rating >= 4.5).length;
+
                 const t1GKs = team1.filter(p => p.position.includes('حارس')).length;
                 const t2GKs = team2.filter(p => p.position.includes('حارس')).length;
                 
                 const t1Defs = team1.filter(p => p.position === 'دفاع').length;
                 const t2Defs = team2.filter(p => p.position === 'دفاع').length;
 
-                if (diff <= 1.0 && Math.abs(t1GKs - t2GKs) <= 1 && Math.abs(t1Defs - t2Defs) <= 1) {
+                // شرط متزن جداً: فرق قوى أقل من نقطة واحدة، وفصل النخبة وحراس المرمى بالتساوي
+                if (diff <= 0.8 && Math.abs(t1Elites - t2Elites) <= 1 && Math.abs(t1GKs - t2GKs) <= 1 && Math.abs(t1Defs - t2Defs) <= 1) {
                     acceptableSplits.push({ team1, team2 });
                 }
             }
@@ -318,76 +393,120 @@
             if (acceptableSplits.length > 0) {
                 finalSplit = acceptableSplits[Math.floor(Math.random() * acceptableSplits.length)];
             } else {
+                // تقسيم احتياطي في حال عدم مطابقة جميع الشروط الحسابية بدقة
                 const backupShuffle = [...selectedList];
                 backupShuffle.sort(() => 0.5 - Math.random());
                 finalSplit = { team1: backupShuffle.slice(0, halfSize), team2: backupShuffle.slice(halfSize, matchMode) };
             }
 
-            displayResults(finalSplit);
+            // تعيين عشوائي لجهة الفريق الأبيض والأسود
+            if (Math.random() > 0.5) {
+                currentTeamWhite = [...finalSplit.team1];
+                currentTeamBlack = [...finalSplit.team2];
+            } else {
+                currentTeamWhite = [...finalSplit.team2];
+                currentTeamBlack = [...finalSplit.team1];
+            }
+
+            // اختيار أسماء كوميدية عشوائية وفريدة للفريقين
+            const shuffledNames = [...funnyTeamNames].sort(() => 0.5 - Math.random());
+            document.getElementById('whiteTeamName').innerText = shuffledNames[0];
+            document.getElementById('blackTeamName').innerText = shuffledNames[1];
+
+            displayResults();
         }
 
-        function displayResults(split) {
-            const resultsSection = document.getElementById('resultsSection');
-            const team1List = document.getElementById('team1List');
-            const team2List = document.getElementById('team2List');
+        function displayResults() {
+            const resultsOuter = document.getElementById('resultsOuter');
+            const whiteTeamList = document.getElementById('whiteTeamList');
+            const blackTeamList = document.getElementById('blackTeamList');
 
-            if (!resultsSection || !team1List || !team2List) return;
+            if (!resultsOuter || !whiteTeamList || !blackTeamList) return;
 
-            team1List.innerHTML = '';
-            team2List.innerHTML = '';
+            whiteTeamList.innerHTML = '';
+            blackTeamList.innerHTML = '';
 
-            const t1GKs = split.team1.filter(p => p.position.includes('حارس'));
-            const t2GKs = split.team2.filter(p => p.position.includes('حارس'));
+            // كود تعيين الحارس المؤقت
+            const t1GKs = currentTeamWhite.filter(p => p.position.includes('حارس'));
+            const t2GKs = currentTeamBlack.filter(p => p.position.includes('حارس'));
 
             let t1TempGKId = null;
             let t2TempGKId = null;
 
             if (t1GKs.length === 0 && t2GKs.length > 0) {
-                const sortedT1 = [...split.team1].sort((a, b) => a.rating - b.rating);
+                const sortedT1 = [...currentTeamWhite].sort((a, b) => a.rating - b.rating);
                 t1TempGKId = sortedT1[0].id;
             } 
             else if (t2GKs.length === 0 && t1GKs.length > 0) {
-                const sortedT2 = [...split.team2].sort((a, b) => a.rating - b.rating);
+                const sortedT2 = [...currentTeamBlack].sort((a, b) => a.rating - b.rating);
                 t2TempGKId = sortedT2[0].id; 
             } 
             else if (t1GKs.length === 0 && t2GKs.length === 0) {
-                const sortedT1 = [...split.team1].sort((a, b) => a.rating - b.rating);
+                const sortedT1 = [...currentTeamWhite].sort((a, b) => a.rating - b.rating);
                 t1TempGKId = sortedT1[0].id;
-                const sortedT2 = [...split.team2].sort((a, b) => a.rating - b.rating);
+                const sortedT2 = [...currentTeamBlack].sort((a, b) => a.rating - b.rating);
                 t2TempGKId = sortedT2[0].id;
             }
 
-            function getPlayerRowHtml(p, idx, isTeam1) {
+            // رسم اللاعب في الفريق وتفعيل السحب والإسقاط واللمس للتبديل
+            function createPlayerRow(p, isWhite, idx) {
                 const isGK = p.position.includes('حارس');
-                const isTempGK = (isTeam1 && p.id === t1TempGKId) || (!isTeam1 && p.id === t2TempGKId);
+                const isTempGK = (isWhite && p.id === t1TempGKId) || (!isWhite && p.id === t2TempGKId);
                 
-                let badgeColor = "text-slate-400 bg-slate-850 border-slate-700";
-                let badgeText = p.position;
+                let badgeColor = isWhite ? "text-slate-600 bg-slate-200 border-slate-300" : "text-slate-400 bg-slate-900 border-slate-800";
+                let badgeText = "";
                 
                 if (isGK) {
-                    badgeColor = "text-emerald-400 bg-emerald-950/50 border-emerald-800/40 font-bold";
+                    badgeColor = "text-emerald-500 bg-emerald-100/50 border-emerald-300 font-bold";
                     badgeText = "حارس مرمى";
                 } else if (isTempGK) {
-                    badgeColor = "text-amber-400 bg-amber-950/60 border-amber-800/40 font-bold animate-pulse";
+                    badgeColor = "text-amber-600 bg-amber-100/60 border-amber-300 font-bold animate-pulse";
                     badgeText = "حارس مؤقت 🧤";
                 }
 
-                return `
-                    <li class="flex justify-between items-center bg-slate-900 border border-slate-800 p-3 rounded-lg text-slate-100 font-medium text-right">
-                        <span>${p.name}</span>
-                        <span class="text-xs ${badgeColor} py-1 px-2.5 rounded-full border">${badgeText}</span>
-                    </li>
+                const li = document.createElement('li');
+                li.className = `flex justify-between items-center p-3 rounded-lg border transition-all cursor-move select-none ${isWhite ? 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-850'}`;
+                li.draggable = true;
+                li.dataset.id = p.id;
+                li.dataset.team = isWhite ? 'white' : 'black';
+                li.dataset.index = idx;
+
+                // أحداث السحب والإفلات للكمبيوتر
+                li.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ id: p.id, team: isWhite ? 'white' : 'black', index: idx }));
+                };
+                li.ondragover = (e) => e.preventDefault();
+                li.ondrop = (e) => {
+                    e.preventDefault();
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    swapPlayers(data.id, data.team, data.index, p.id, isWhite ? 'white' : 'black', idx);
+                };
+
+                // أحداث الضغط واللمس للجوالات
+                li.onclick = () => handleTapSelection(li, p.id, isWhite ? 'white' : 'black', idx);
+
+                // زر التبديل للاعب المعتذر 🔄
+                const swapBtn = `<button onclick="event.stopPropagation(); openSwapModal(${p.id}, '${isWhite ? 'white' : 'black'}')" class="mr-2 text-slate-400 hover:text-emerald-500 transition-all text-sm" title="تبديل معتذر">🔄</button>`;
+
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        ${swapBtn}
+                        <span class="font-bold">${p.name}</span>
+                    </div>
+                    ${badgeText ? `<span class="text-xs ${badgeColor} py-0.5 px-2 rounded-full border">${badgeText}</span>` : ''}
                 `;
+                return li;
             }
 
-            split.team1.forEach((p, idx) => {
-                team1List.innerHTML += getPlayerRowHtml(p, idx, true);
+            currentTeamWhite.forEach((p, idx) => {
+                whiteTeamList.appendChild(createPlayerRow(p, true, idx));
             });
 
-            split.team2.forEach((p, idx) => {
-                team2List.innerHTML += getPlayerRowHtml(p, idx, false);
+            currentTeamBlack.forEach((p, idx) => {
+                blackTeamList.appendChild(createPlayerRow(p, false, idx));
             });
 
+            // صبيبة المتة
             const mateHonorCard = document.getElementById('mateHonorCard');
             const mateHonorNames = document.getElementById('mateHonorNames');
             if (mateServers.length > 0) {
@@ -397,8 +516,129 @@
                 mateHonorCard.classList.add('hidden');
             }
 
-            resultsSection.classList.remove('hidden');
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            resultsOuter.classList.remove('hidden');
+            resultsOuter.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // دالة التبديل بين لاعبين (لأجهزة الكمبيوتر والجوالات)
+        function swapPlayers(id1, team1, idx1, id2, team2, idx2) {
+            let p1, p2;
+            if (team1 === 'white') p1 = currentTeamWhite[idx1]; else p1 = currentTeamBlack[idx1];
+            if (team2 === 'white') p2 = currentTeamWhite[idx2]; else p2 = currentTeamBlack[idx2];
+
+            if (team1 === 'white') currentTeamWhite[idx1] = p2; else currentTeamBlack[idx1] = p2;
+            if (team2 === 'white') currentTeamWhite[idx2] = p1; else currentTeamBlack[idx2] = p1;
+
+            displayResults();
+        }
+
+        // دالة تسهيل التبادل الفوري باللمس على الجوالات
+        function handleTapSelection(element, id, team, idx) {
+            if (!firstSelectedElement) {
+                firstSelectedElement = element;
+                firstSelectedPlayerId = id;
+                firstSelectedTeam = team;
+                firstSelectedElement.classList.add('ring-4', 'ring-emerald-500');
+            } else {
+                const secondIndex = (team === 'white') ? currentTeamWhite.findIndex(p => p.id === id) : currentTeamBlack.findIndex(p => p.id === id);
+                const firstIndex = (firstSelectedTeam === 'white') ? currentTeamWhite.findIndex(p => p.id === firstSelectedPlayerId) : currentTeamBlack.findIndex(p => p.id === firstSelectedPlayerId);
+
+                swapPlayers(firstSelectedPlayerId, firstSelectedTeam, firstIndex, id, team, secondIndex);
+
+                firstSelectedElement.classList.remove('ring-4', 'ring-emerald-500');
+                firstSelectedElement = null;
+                firstSelectedPlayerId = null;
+                firstSelectedTeam = null;
+            }
+        }
+
+        // فتح نافذة تبديل اللاعب المعتذر المنبثقة
+        function openSwapModal(playerId, team) {
+            playerToReplaceId = playerId;
+            playerToReplaceTeam = team;
+
+            const targetPlayer = players.find(p => p.id === playerId);
+            document.getElementById('swapModalTargetText').innerText = `تبديل اللاعب المعتذر: ${targetPlayer.name} (${team === 'white' ? 'الفريق الأبيض' : 'الفريق الأسود'})`;
+
+            const select = document.getElementById('swapSelectPlayer');
+            select.innerHTML = '<option value="">-- اختر لاعباً احتياطياً --</option>';
+
+            // جلب قائمة اللاعبين غير المسجلين في مباراة اليوم
+            players.forEach(p => {
+                if (!selectedPlayerIds.has(p.id)) {
+                    select.innerHTML += `<option value="${p.id}">${p.name} (${p.position})</option>`;
+                }
+            });
+
+            document.getElementById('swapGuestName').value = '';
+            document.getElementById('swapModal').classList.remove('hidden');
+            document.getElementById('swapModal').classList.add('flex');
+        }
+
+        function closeSwapModal() {
+            document.getElementById('swapModal').classList.add('hidden');
+            document.getElementById('swapModal').classList.remove('flex');
+        }
+
+        // تأكيد التبديل للاعب المعتذر
+        function confirmSwap() {
+            const selectVal = document.getElementById('swapSelectPlayer').value;
+            const guestNameVal = document.getElementById('swapGuestName').value.trim();
+
+            let replacementPlayer = null;
+
+            if (guestNameVal) {
+                // إضافة ضيف خارجي كبديل
+                const newId = players.length + 1;
+                replacementPlayer = { id: newId, name: guestNameVal, position: "جوكر", rating: 3, isGuest: true };
+                players.push(replacementPlayer);
+            } else if (selectVal) {
+                // تبديله بلاعب احتياطي مسجل مسبقاً
+                const selectedId = parseInt(selectVal);
+                replacementPlayer = players.find(p => p.id === selectedId);
+                selectedPlayerIds.add(selectedId);
+                selectedPlayerIds.delete(playerToReplaceId);
+            } else {
+                alert("يرجى اختيار لاعب بديل أو كتابة اسم ضيف جديد لتأكيد التبديل.");
+                return;
+            }
+
+            // تطبيق التبديل في كفتي الفريقين فوراً دون المساس بالبقية
+            if (playerToReplaceTeam === 'white') {
+                const idx = currentTeamWhite.findIndex(p => p.id === playerToReplaceId);
+                if (idx !== -1) currentTeamWhite[idx] = replacementPlayer;
+            } else {
+                const idx = currentTeamBlack.findIndex(p => p.id === playerToReplaceId);
+                if (idx !== -1) currentTeamBlack[idx] = replacementPlayer;
+            }
+
+            closeSwapModal();
+            renderPlayers();
+            displayResults();
+        }
+
+        // تصدير التشكيلة النهائية كصورة PNG ومشاركتها مع الجروب
+        function exportAsImage() {
+            const resultsSection = document.getElementById('resultsSection');
+            if (!resultsSection) return;
+
+            // إخفاء أزرار التبديل الدائرية 🔄 من الصورة النهائية المصدرة لمنظر جمالي أفضل
+            document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'none');
+
+            html2canvas(resultsSection, {
+                backgroundColor: '#020617', // لون الخلفية الداكن المطابق
+                scale: 2, // دقة تصدير مضاعفة الوضوح
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `سهرة_المباراة_سامر_سعد.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                // إعادة أزرار التبديل الدائرية 🔄 للواجهة بعد انتهاء التصوير
+                document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'inline-block');
+            });
         }
 
         // تشغيل مباشر فوري بدون انتظار تحميل أي عنصر خارجي (تماماً مثل النسخة الأولى الناجحة)
