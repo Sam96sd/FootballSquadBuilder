@@ -7,7 +7,7 @@
     <!-- Tailwind CSS للواجهات الداكنة المتقدمة -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- مكتبة html2canvas لتصدير التشكيلة كصورة عالية الدقة بضغطة زر -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
 
@@ -640,30 +640,27 @@
             displayResults();
         }
 
-        function exportAsImage() {
+        async function exportAsImage() {
             const resultsSection = document.getElementById('resultsSection');
             if (!resultsSection) return;
 
-            document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'none');
+            try {
+                await document.fonts.ready;
 
-            // إعدادات تصدير الصورة الفائقة الدقة بدون إزاحات أو انحرافات للأجهزة المحمولة والكمبيوتر
-            html2canvas(resultsSection, {
-                backgroundColor: '#020617',
-                scale: 2,
-                logging: false,
-                useCORS: true,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.offsetHeight
-            }).then(canvas => {
+                const dataUrl = await htmlToImage.toPng(resultsSection, {
+                    backgroundColor: '#020617',
+                    pixelRatio: 2,
+                    cacheBust: true,
+                    filter: (node) => node.tagName !== 'BUTTON'
+                });
+
                 const link = document.createElement('a');
-                link.download = `سهرة_المباراة_سامر_سعد.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.download = 'سهرة_المباراة_سامر_سعد.png';
+                link.href = dataUrl;
                 link.click();
-
-                document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'inline-block');
-            });
+            } catch (err) {
+                alert('تعذر حفظ الصورة: ' + err.message);
+            }
         }
 
         // تشغيل مباشر فوري
