@@ -9,7 +9,7 @@
     <!-- مكتبة html2canvas لتصدير التشكيلة كصورة عالية الدقة بضغطة زر -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+<body class="bg-slate-955 text-slate-100 min-h-screen p-4 md:p-8 bg-slate-950">
 
     <div class="max-w-4xl mx-auto bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-6">
         
@@ -96,7 +96,7 @@
             
             <!-- سحب وإسقاط وتصدير كصورة -->
             <div class="text-center bg-slate-800/30 p-3 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
-                <span class="text-xs text-slate-400">💡 يمكنك سحب اللاعبين للتبديل، أو ببساطة اضغط على لاعب ثم اضغط على لاعب آخر للتبديل الفوري بينهما!</span>
+                <span class="text-xs text-slate-400">💡 يمكنك سحب اللاعبين لتغيير مراكزهم، أو اضغط على لاعب ثم لاعب آخر للتبديل الفوري بينهما!</span>
                 <button onclick="exportAsImage()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-md flex items-center gap-2">
                     📸 تصدير كصورة للجروب
                 </button>
@@ -206,16 +206,14 @@
         var mateServers = [];
         var matchMode = 12;
 
-        // متغيرات حفظ التشكيلة الحالية الناتجة للتبديل والتحريك
+        // التشكيلة الحالية الناتجة للتبديل والتحريك
         var currentTeamWhite = [];
         var currentTeamBlack = [];
 
-        // متغيرات للتحكم بالتبديل السريع باللمس والضغط
         var firstSelectedElement = null;
         var firstSelectedPlayerId = null;
         var firstSelectedTeam = null;
 
-        // متغيرات التبديل للاعب المعتذر
         var playerToReplaceId = null;
         var playerToReplaceTeam = null;
 
@@ -354,13 +352,22 @@
             });
         }
 
+        // دالة تحديد الوزن التكتيكي للمركز (لأجل الترتيب الأولي)
+        function getPositionWeight(pos) {
+            if (!pos) return 5;
+            if (pos.includes('حارس')) return 1; // حارس أولاً
+            if (pos.includes('دفاع')) return 2; // دفاع ثانياً
+            if (pos.includes('وسط')) return 3;  // وسط ثالثاً
+            if (pos.includes('هجوم')) return 4; // هجوم رابعاً
+            return 5; // جوكر أو غير ذلك خامساً
+        }
+
         // خوارزمية ذكية لتقسيم وحساب كافة التشكيلات المتوازنة
         function generateTeams() {
             const selectedList = players.filter(p => selectedPlayerIds.has(p.id));
             const halfSize = matchMode / 2;
             let acceptableSplits = [];
 
-            // تجربة توليد تشكيلات رياضية متزنة وفصل النخبة (أكبر من 4.5) بالتساوي
             for (let step = 0; step < 3000; step++) {
                 const shuffled = [...selectedList];
                 shuffled.sort(() => 0.5 - Math.random());
@@ -373,7 +380,6 @@
                 
                 const diff = Math.abs(t1Power - t2Power);
 
-                // فصل لاعبي النخبة (Samer, Melhem, Mahmoud, Omran الخ)
                 const t1Elites = team1.filter(p => p.rating >= 4.5).length;
                 const t2Elites = team2.filter(p => p.rating >= 4.5).length;
 
@@ -383,7 +389,6 @@
                 const t1Defs = team1.filter(p => p.position === 'دفاع').length;
                 const t2Defs = team2.filter(p => p.position === 'دفاع').length;
 
-                // شرط متزن جداً: فرق قوى أقل من نقطة واحدة، وفصل النخبة وحراس المرمى بالتساوي
                 if (diff <= 0.8 && Math.abs(t1Elites - t2Elites) <= 1 && Math.abs(t1GKs - t2GKs) <= 1 && Math.abs(t1Defs - t2Defs) <= 1) {
                     acceptableSplits.push({ team1, team2 });
                 }
@@ -393,7 +398,6 @@
             if (acceptableSplits.length > 0) {
                 finalSplit = acceptableSplits[Math.floor(Math.random() * acceptableSplits.length)];
             } else {
-                // تقسيم احتياطي في حال عدم مطابقة جميع الشروط الحسابية بدقة
                 const backupShuffle = [...selectedList];
                 backupShuffle.sort(() => 0.5 - Math.random());
                 finalSplit = { team1: backupShuffle.slice(0, halfSize), team2: backupShuffle.slice(halfSize, matchMode) };
@@ -407,6 +411,10 @@
                 currentTeamWhite = [...finalSplit.team2];
                 currentTeamBlack = [...finalSplit.team1];
             }
+
+            // ترتيب أولي تكتيكي لكل فريق قبل العرض (حارس 👈 دفاع 👈 وسط 👈 هجوم)
+            currentTeamWhite.sort((a, b) => getPositionWeight(a.position) - getPositionWeight(b.position));
+            currentTeamBlack.sort((a, b) => getPositionWeight(a.position) - getPositionWeight(b.position));
 
             // اختيار أسماء كوميدية عشوائية وفريدة للفريقين
             const shuffledNames = [...funnyTeamNames].sort(() => 0.5 - Math.random());
@@ -426,7 +434,6 @@
             whiteTeamList.innerHTML = '';
             blackTeamList.innerHTML = '';
 
-            // كود تعيين الحارس المؤقت
             const t1GKs = currentTeamWhite.filter(p => p.position.includes('حارس'));
             const t2GKs = currentTeamBlack.filter(p => p.position.includes('حارس'));
 
@@ -448,7 +455,7 @@
                 t2TempGKId = sortedT2[0].id;
             }
 
-            // رسم اللاعب في الفريق وتفعيل السحب والإسقاط واللمس للتبديل
+            // رسم اللاعبين
             function createPlayerRow(p, isWhite, idx) {
                 const isGK = p.position.includes('حارس');
                 const isTempGK = (isWhite && p.id === t1TempGKId) || (!isWhite && p.id === t2TempGKId);
@@ -471,7 +478,6 @@
                 li.dataset.team = isWhite ? 'white' : 'black';
                 li.dataset.index = idx;
 
-                // أحداث السحب والإفلات للكمبيوتر
                 li.ondragstart = (e) => {
                     e.dataTransfer.setData('text/plain', JSON.stringify({ id: p.id, team: isWhite ? 'white' : 'black', index: idx }));
                 };
@@ -482,10 +488,8 @@
                     swapPlayers(data.id, data.team, data.index, p.id, isWhite ? 'white' : 'black', idx);
                 };
 
-                // أحداث الضغط واللمس للجوالات
                 li.onclick = () => handleTapSelection(li, p.id, isWhite ? 'white' : 'black', idx);
 
-                // زر التبديل للاعب المعتذر 🔄
                 const swapBtn = `<button onclick="event.stopPropagation(); openSwapModal(${p.id}, '${isWhite ? 'white' : 'black'}')" class="mr-2 text-slate-400 hover:text-emerald-500 transition-all text-sm" title="تبديل معتذر">🔄</button>`;
 
                 li.innerHTML = `
@@ -506,7 +510,6 @@
                 blackTeamList.appendChild(createPlayerRow(p, false, idx));
             });
 
-            // صبيبة المتة
             const mateHonorCard = document.getElementById('mateHonorCard');
             const mateHonorNames = document.getElementById('mateHonorNames');
             if (mateServers.length > 0) {
@@ -520,7 +523,6 @@
             resultsOuter.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // دالة التبديل بين لاعبين (لأجهزة الكمبيوتر والجوالات)
         function swapPlayers(id1, team1, idx1, id2, team2, idx2) {
             let p1, p2;
             if (team1 === 'white') p1 = currentTeamWhite[idx1]; else p1 = currentTeamBlack[idx1];
@@ -532,7 +534,6 @@
             displayResults();
         }
 
-        // دالة تسهيل التبادل الفوري باللمس على الجوالات
         function handleTapSelection(element, id, team, idx) {
             if (!firstSelectedElement) {
                 firstSelectedElement = element;
@@ -552,7 +553,6 @@
             }
         }
 
-        // فتح نافذة تبديل اللاعب المعتذر المنبثقة
         function openSwapModal(playerId, team) {
             playerToReplaceId = playerId;
             playerToReplaceTeam = team;
@@ -563,10 +563,9 @@
             const select = document.getElementById('swapSelectPlayer');
             select.innerHTML = '<option value="">-- اختر لاعباً احتياطياً --</option>';
 
-            // جلب قائمة اللاعبين غير المسجلين في مباراة اليوم
             players.forEach(p => {
                 if (!selectedPlayerIds.has(p.id)) {
-                    select.innerHTML += `<option value="${p.id}">${p.name} (${p.position})</option>`;
+                    select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
                 }
             });
 
@@ -580,7 +579,6 @@
             document.getElementById('swapModal').classList.remove('flex');
         }
 
-        // تأكيد التبديل للاعب المعتذر
         function confirmSwap() {
             const selectVal = document.getElementById('swapSelectPlayer').value;
             const guestNameVal = document.getElementById('swapGuestName').value.trim();
@@ -588,12 +586,10 @@
             let replacementPlayer = null;
 
             if (guestNameVal) {
-                // إضافة ضيف خارجي كبديل
                 const newId = players.length + 1;
                 replacementPlayer = { id: newId, name: guestNameVal, position: "جوكر", rating: 3, isGuest: true };
                 players.push(replacementPlayer);
             } else if (selectVal) {
-                // تبديله بلاعب احتياطي مسجل مسبقاً
                 const selectedId = parseInt(selectVal);
                 replacementPlayer = players.find(p => p.id === selectedId);
                 selectedPlayerIds.add(selectedId);
@@ -603,7 +599,6 @@
                 return;
             }
 
-            // تطبيق التبديل في كفتي الفريقين فوراً دون المساس بالبقية
             if (playerToReplaceTeam === 'white') {
                 const idx = currentTeamWhite.findIndex(p => p.id === playerToReplaceId);
                 if (idx !== -1) currentTeamWhite[idx] = replacementPlayer;
@@ -617,17 +612,15 @@
             displayResults();
         }
 
-        // تصدير التشكيلة النهائية كصورة PNG ومشاركتها مع الجروب
         function exportAsImage() {
             const resultsSection = document.getElementById('resultsSection');
             if (!resultsSection) return;
 
-            // إخفاء أزرار التبديل الدائرية 🔄 من الصورة النهائية المصدرة لمنظر جمالي أفضل
             document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'none');
 
             html2canvas(resultsSection, {
-                backgroundColor: '#020617', // لون الخلفية الداكن المطابق
-                scale: 2, // دقة تصدير مضاعفة الوضوح
+                backgroundColor: '#020617',
+                scale: 2,
                 logging: false,
                 useCORS: true
             }).then(canvas => {
@@ -636,12 +629,11 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
 
-                // إعادة أزرار التبديل الدائرية 🔄 للواجهة بعد انتهاء التصوير
                 document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'inline-block');
             });
         }
 
-        // تشغيل مباشر فوري بدون انتظار تحميل أي عنصر خارجي (تماماً مثل النسخة الأولى الناجحة)
+        // تشغيل فوري تلقائي
         renderPlayers();
     </script>
 </body>
