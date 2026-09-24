@@ -9,7 +9,7 @@
     <!-- مكتبة html2canvas لتصدير التشكيلة كصورة عالية الدقة بضغطة زر -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body class="bg-slate-955 text-slate-100 min-h-screen p-4 md:p-8 bg-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-6">
         
@@ -107,7 +107,9 @@
                 <div id="whiteTeamContainer" class="bg-slate-100 text-slate-900 border-2 border-slate-200 p-5 rounded-xl shadow-lg transition-all">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-2">
                         <h3 id="whiteTeamName" class="text-2xl font-black text-slate-950">الفريق الأبيض</h3>
-                        <span class="text-xs font-black uppercase tracking-wider bg-slate-200 text-slate-800 px-3 py-1 rounded-full border border-slate-300">الفريق الأبيض ⚪</span>
+                        <span class="text-xs font-bold bg-slate-200 text-slate-800 px-3 py-1 rounded-full border border-slate-300 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-white rounded-full border border-slate-400"></span> الفريق الأبيض
+                        </span>
                     </div>
                     <ul id="whiteTeamList" class="space-y-2 text-right"></ul>
                 </div>
@@ -116,7 +118,9 @@
                 <div id="blackTeamContainer" class="bg-slate-950 text-slate-100 border-2 border-slate-800 p-5 rounded-xl shadow-lg transition-all">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
                         <h3 id="blackTeamName" class="text-2xl font-black text-white">الفريق الأسود</h3>
-                        <span class="text-xs font-black uppercase tracking-wider bg-slate-900 text-slate-200 px-3 py-1 rounded-full border border-slate-800">الفريق الأسود ⚫</span>
+                        <span class="text-xs font-bold bg-slate-900 text-slate-200 px-3 py-1 rounded-full border border-slate-800 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-black rounded-full border border-slate-650"></span> الفريق الأسود
+                        </span>
                     </div>
                     <ul id="blackTeamList" class="space-y-2 text-right"></ul>
                 </div>
@@ -472,7 +476,7 @@
                 }
 
                 const li = document.createElement('li');
-                li.className = `flex justify-between items-center p-3 rounded-lg border transition-all cursor-move select-none ${isWhite ? 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-850'}`;
+                li.className = `flex justify-between items-center p-3 rounded-lg border transition-all cursor-move select-none ${isWhite ? 'bg-white border-slate-200 text-slate-900 hover:bg-slate-55' : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-850'}`;
                 li.draggable = true;
                 li.dataset.id = p.id;
                 li.dataset.team = isWhite ? 'white' : 'black';
@@ -616,24 +620,31 @@
             const resultsSection = document.getElementById('resultsSection');
             if (!resultsSection) return;
 
+            // إخفاء الأزرار اللمسية والدائرية مؤقتاً أثناء التصوير
             document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'none');
 
+            // تصفير إحداثيات الإزاحة (Scroll Coordinates) لضمان عدم حدوث تشويه أو قطع عند تصوير الشاشات الكبيرة أو المائلة للأسفل
             html2canvas(resultsSection, {
                 backgroundColor: '#020617',
                 scale: 2,
                 logging: false,
-                useCORS: true
+                useCORS: true,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `سهرة_المباراة_سامر_سعد.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
 
+                // إعادة تفعيل الأزرار مجدداً فور انتهاء التصوير
                 document.querySelectorAll('#resultsSection button').forEach(btn => btn.style.display = 'inline-block');
             });
         }
 
-        // تشغيل فوري تلقائي
+        // تشغيل مباشر فوري
         renderPlayers();
     </script>
 </body>
