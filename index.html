@@ -25,7 +25,7 @@
                 <button id="btnMode12" onclick="setMatchMode(12)" class="px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all">
                     12 لاعب (6 ضد 6)
                 </button>
-                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all">
+                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">
                     14 لاعب (6 أساسي + 1 احتياط)
                 </button>
             </div>
@@ -105,24 +105,44 @@
             <div id="resultsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl bg-slate-950">
                 <!-- الفريق الأبيض -->
                 <div id="whiteTeamContainer" class="bg-slate-100 text-slate-900 border-2 border-slate-200 p-5 rounded-xl shadow-lg transition-all">
-                    <div class="border-b border-slate-200 pb-2 mb-4 overflow-hidden">
-                        <h3 id="whiteTeamName" class="text-2xl font-black text-slate-950 float-right leading-8">الفريق الأبيض</h3>
-                        <span class="text-xs font-bold bg-slate-200 text-slate-800 px-3 py-1.5 rounded-full border border-slate-300 float-left mt-1">
-                            <span class="w-2.5 h-2.5 bg-white rounded-full border border-slate-400 inline-block align-middle ml-1.5"></span> الفريق الأبيض
-                        </span>
-                    </div>
-                    <ul id="whiteTeamList" class="space-y-2 text-right"></ul>
+                    <!-- هيكلة الهيدر بنظام جدول مستقل لثبات الأبعاد والمحاذاة 100% -->
+                    <table class="w-full mb-4 border-b border-slate-200 pb-2">
+                        <tr>
+                            <td class="text-right align-middle">
+                                <h3 id="whiteTeamName" class="text-2xl font-black text-slate-950">الفريق الأبيض</h3>
+                            </td>
+                            <td class="text-left align-middle">
+                                <span class="text-xs font-bold bg-slate-200 text-slate-800 px-3 py-1.5 rounded-full border border-slate-300 inline-block">
+                                    <span class="w-2.5 h-2.5 bg-white rounded-full border border-slate-400 inline-block align-middle ml-1.5"></span> الفريق الأبيض
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <table class="w-full border-separate border-spacing-y-2 text-right">
+                        <tbody id="whiteTeamList"></tbody>
+                    </table>
                 </div>
 
                 <!-- الفريق الأسود -->
                 <div id="blackTeamContainer" class="bg-slate-950 text-slate-100 border-2 border-slate-800 p-5 rounded-xl shadow-lg transition-all">
-                    <div class="border-b border-slate-800 pb-2 mb-4 overflow-hidden">
-                        <h3 id="blackTeamName" class="text-2xl font-black text-white float-right leading-8">الفريق الأسود</h3>
-                        <span class="text-xs font-bold bg-slate-900 text-slate-200 px-3 py-1.5 rounded-full border border-slate-800 float-left mt-1">
-                            <span class="w-2.5 h-2.5 bg-black rounded-full border border-slate-700 inline-block align-middle ml-1.5"></span> الفريق الأسود
-                        </span>
-                    </div>
-                    <ul id="blackTeamList" class="space-y-2 text-right"></ul>
+                    <!-- هيكلة الهيدر بنظام جدول مستقل لثبات الأبعاد والمحاذاة 100% -->
+                    <table class="w-full mb-4 border-b border-slate-800 pb-2">
+                        <tr>
+                            <td class="text-right align-middle">
+                                <h3 id="blackTeamName" class="text-2xl font-black text-white">الفريق الأسود</h3>
+                            </td>
+                            <td class="text-left align-middle">
+                                <span class="text-xs font-bold bg-slate-900 text-slate-200 px-3 py-1.5 rounded-full border border-slate-800 inline-block">
+                                    <span class="w-2.5 h-2.5 bg-black rounded-full border border-slate-700 inline-block align-middle ml-1.5"></span> الفريق الأسود
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="w-full border-separate border-spacing-y-2 text-right">
+                        <tbody id="blackTeamList"></tbody>
+                    </table>
                 </div>
 
                 <!-- لوحة شرف صبيبة المتة الناتجة -->
@@ -210,7 +230,6 @@
         var mateServers = [];
         var matchMode = 12;
 
-        // التشكيلة الحالية الناتجة للتبديل والتحريك
         var currentTeamWhite = [];
         var currentTeamBlack = [];
 
@@ -459,7 +478,7 @@
                 t2TempGKId = sortedT2[0].id;
             }
 
-            // رسم اللاعبين
+            // رسم اللاعبين كصفوف جداول حقيقية وثابتة الأبعاد لتجنب عيوب إزاحة flexbox بالمتصفحات
             function createPlayerRow(p, isWhite, idx) {
                 const isGK = p.position.includes('حارس');
                 const isTempGK = (isWhite && p.id === t1TempGKId) || (!isWhite && p.id === t2TempGKId);
@@ -469,45 +488,46 @@
                 
                 if (isGK) {
                     badgeColor = "text-emerald-500 bg-emerald-100/50 border-emerald-300 font-bold";
-                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle mt-0.5">حارس مرمى</span>';
+                    badgeHtml = '<span class="text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle">حارس مرمى</span>';
                 } else if (isTempGK) {
                     badgeColor = "text-amber-600 bg-amber-100/60 border-amber-300 font-bold animate-pulse";
-                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle mt-0.5">حارس مؤقت 🧤</span>';
+                    badgeHtml = '<span class="text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle">حارس مؤقت 🧤</span>';
                 }
 
-                const li = document.createElement('li');
-                li.className = "p-3 rounded-lg border overflow-hidden select-none cursor-move " + 
-                    (isWhite ? 'bg-white border-slate-200 text-slate-900 hover:bg-slate-55' : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-850');
+                const rowClass = isWhite ? 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-850';
                 
-                li.draggable = true;
-                li.dataset.id = p.id;
-                li.dataset.team = isWhite ? 'white' : 'black';
-                li.dataset.index = idx;
+                const tr = document.createElement('tr');
+                tr.className = "select-none cursor-move rounded-xl overflow-hidden " + rowClass;
+                tr.draggable = true;
+                tr.dataset.id = p.id;
+                tr.dataset.team = isWhite ? 'white' : 'black';
+                tr.dataset.index = idx;
 
-                li.ondragstart = (e) => {
+                tr.ondragstart = (e) => {
                     e.dataTransfer.setData('text/plain', JSON.stringify({ id: p.id, team: isWhite ? 'white' : 'black', index: idx }));
                 };
-                li.ondragover = (e) => e.preventDefault();
-                li.ondrop = (e) => {
+                tr.ondragover = (e) => e.preventDefault();
+                tr.ondrop = (e) => {
                     e.preventDefault();
                     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
                     swapPlayers(data.id, data.team, data.index, p.id, isWhite ? 'white' : 'black', idx);
                 };
 
-                li.onclick = () => handleTapSelection(li, p.id, isWhite ? 'white' : 'black', idx);
+                tr.onclick = () => handleTapSelection(tr, p.id, isWhite ? 'white' : 'black', idx);
 
-                // زر التبديل
                 const swapBtn = '<button onclick="event.stopPropagation(); openSwapModal(' + p.id + ', \'' + (isWhite ? 'white' : 'black') + '\')" class="ml-1 text-slate-400 hover:text-emerald-500 transition-all text-sm inline-block align-middle" title="تبديل معتذر">🔄</button>';
 
-                // حل مشكلة تباعد وتمدد الأحرف في الأسماء العربية عند تصدير الصورة باستخدام دمج كلاسيكي آمن للنص
-                li.innerHTML = `
-                    <div class="float-right h-6 overflow-hidden text-right" style="line-height: 24px;">
+                // الاعتماد على نظام خلايا الجدول (td) ذي المحاذاة المطلقة (Align Middle) لمنع انزياح كبسولات الحراس
+                tr.innerHTML = `
+                    <td class="p-3 text-right align-middle rounded-r-lg" style="width: 70%; line-height: 24px;">
                         ${swapBtn}
                         <span class="font-bold inline-block align-middle mr-1">${p.name}</span>
-                    </div>
-                    ${badgeHtml}
+                    </td>
+                    <td class="p-3 text-left align-middle rounded-l-lg" style="width: 30%;">
+                        ${badgeHtml}
+                    </td>
                 `;
-                return li;
+                return tr;
             }
 
             currentTeamWhite.forEach((p, idx) => {
