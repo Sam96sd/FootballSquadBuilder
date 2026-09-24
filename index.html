@@ -25,7 +25,7 @@
                 <button id="btnMode12" onclick="setMatchMode(12)" class="px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all">
                     12 لاعب (6 ضد 6)
                 </button>
-                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">
+                <button id="btnMode14" onclick="setMatchMode(14)" class="px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all">
                     14 لاعب (6 أساسي + 1 احتياط)
                 </button>
             </div>
@@ -105,7 +105,6 @@
             <div id="resultsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl bg-slate-950">
                 <!-- الفريق الأبيض -->
                 <div id="whiteTeamContainer" class="bg-slate-100 text-slate-900 border-2 border-slate-200 p-5 rounded-xl shadow-lg transition-all">
-                    <!-- تم تعديل الهيدر ليعتمد على الـ Float كلاسيكي فائق الاستقرار لحل التداخل بالصورة -->
                     <div class="border-b border-slate-200 pb-2 mb-4 overflow-hidden">
                         <h3 id="whiteTeamName" class="text-2xl font-black text-slate-950 float-right leading-8">الفريق الأبيض</h3>
                         <span class="text-xs font-bold bg-slate-200 text-slate-800 px-3 py-1.5 rounded-full border border-slate-300 float-left mt-1">
@@ -117,7 +116,6 @@
 
                 <!-- الفريق الأسود -->
                 <div id="blackTeamContainer" class="bg-slate-950 text-slate-100 border-2 border-slate-800 p-5 rounded-xl shadow-lg transition-all">
-                    <!-- تم تعديل الهيدر ليعتمد على الـ Float كلاسيكي فائق الاستقرار لحل التداخل بالصورة -->
                     <div class="border-b border-slate-800 pb-2 mb-4 overflow-hidden">
                         <h3 id="blackTeamName" class="text-2xl font-black text-white float-right leading-8">الفريق الأسود</h3>
                         <span class="text-xs font-bold bg-slate-900 text-slate-200 px-3 py-1.5 rounded-full border border-slate-800 float-left mt-1">
@@ -274,7 +272,7 @@
             
             if (mode === 12) {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-emerald-600 text-white transition-all";
-                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-750 transition-all";
+                btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all";
             } else {
                 btn12.className = "px-5 py-2.5 text-sm font-bold rounded-r-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all";
                 btn14.className = "px-5 py-2.5 text-sm font-bold rounded-l-lg border border-slate-700 bg-emerald-600 text-white transition-all";
@@ -461,7 +459,7 @@
                 t2TempGKId = sortedT2[0].id;
             }
 
-            // رسم اللاعبين بأسلوب يعتمد على الـ Floats لضمان التطابق التام في الصورة وتلافي عيوب الإزاحة الرأسية
+            // رسم اللاعبين
             function createPlayerRow(p, isWhite, idx) {
                 const isGK = p.position.includes('حارس');
                 const isTempGK = (isWhite && p.id === t1TempGKId) || (!isWhite && p.id === t2TempGKId);
@@ -471,10 +469,10 @@
                 
                 if (isGK) {
                     badgeColor = "text-emerald-500 bg-emerald-100/50 border-emerald-300 font-bold";
-                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-1 rounded-full border inline-block align-middle mt-0.5">حارس مرمى</span>';
+                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle mt-0.5">حارس مرمى</span>';
                 } else if (isTempGK) {
                     badgeColor = "text-amber-600 bg-amber-100/60 border-amber-300 font-bold animate-pulse";
-                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-1 rounded-full border inline-block align-middle mt-0.5">حارس مؤقت 🧤</span>';
+                    badgeHtml = '<span class="float-left text-[11px] font-bold ' + badgeColor + ' px-2.5 py-0.5 rounded-full border inline-block align-middle mt-0.5">حارس مؤقت 🧤</span>';
                 }
 
                 const li = document.createElement('li');
@@ -498,12 +496,14 @@
 
                 li.onclick = () => handleTapSelection(li, p.id, isWhite ? 'white' : 'black', idx);
 
-                const swapBtn = `<button onclick="event.stopPropagation(); openSwapModal(${p.id}, '${isWhite ? 'white' : 'black'}')" class="ml-1 text-slate-400 hover:text-emerald-500 transition-all text-sm inline-block align-middle" title="تبديل معتذر">🔄</button>`;
+                // زر التبديل
+                const swapBtn = '<button onclick="event.stopPropagation(); openSwapModal(' + p.id + ', \'' + (isWhite ? 'white' : 'black') + '\')" class="ml-1 text-slate-400 hover:text-emerald-500 transition-all text-sm inline-block align-middle" title="تبديل معتذر">🔄</button>';
 
+                // حل مشكلة تباعد وتمدد الأحرف في الأسماء العربية عند تصدير الصورة باستخدام دمج كلاسيكي آمن للنص
                 li.innerHTML = `
-                    <div class="float-right flex items-center h-6">
+                    <div class="float-right h-6 overflow-hidden text-right" style="line-height: 24px;">
                         ${swapBtn}
-                        <span class="font-bold leading-6 mr-1">${p.name}</span>
+                        <span class="font-bold inline-block align-middle mr-1">${p.name}</span>
                     </div>
                     ${badgeHtml}
                 `;
